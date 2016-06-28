@@ -1,0 +1,30 @@
+{
+  "type": "panel",
+  "name": "User Jobs",
+  "id": "fifemon-userjobs-panel",
+
+  "info": {
+    "description": "User Jobs Table",
+    "author": {
+      "name": "Kevin Retzke",
+      "url": "http://fifemon.fnal.gov"
+    },
+    "keywords": ["fifemon", "panel"],
+    "logos": {
+      "small": "src/img/piechart_logo_small.png",
+      "large": "src/img/piechart_logo_large.png"
+    },
+    "links": [
+      {"name": "Project site", "url": "https://fifemon.fnal.gov"}
+    ],
+    "screenshots": [
+    ],
+    "version": "0.1.0",
+    "updated": "2016-06-27"
+  },
+
+  "dependencies": {
+    "grafanaVersion": "3.x.x",
+    "plugins": [ ]
+  }
+}

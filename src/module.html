@@ -1,0 +1,60 @@
+<style>
+.job-command {
+    font-size: smaller;
+}
+</style>
+
+<h5>Table is limited to {{ctrl.panel.size}} job clusters; use time picker or filter query to limit results.</h5>
+<div class="gf-form">
+    <span class="gf-form-label">Filter:</span>
+    <input type="text" class="gf-form-input max-width-10" ng-model="ctrl.panel.userQuery" ng-change="ctrl.refresh()" placeholder="query"/>
+    <i>(general search query, e.g. &quot;keepup&quot;. <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax">Query syntax<i class="fa fa-fw fa-external-link"></i></a>)</i>
+</div>
+
+<div class="table-panel-container">
+    <div class="table-panel-header-bg"></div>
+    <div class="table-panel-scroll">
+        <table class="table-panel-table">
+            <thead>
+                <tr>
+                    <th><div class="table-panel-table-header-inner ">
+                            Cluster
+                    </div></th>
+
+                    <th ng-if="ctrl.panel.mode === 'Active' && ctrl.panel.showIdle"><div class="table-panel-table-header-inner ">
+                            I
+                    </div></th>
+                    <th ng-if="ctrl.panel.mode === 'Active' && ctrl.panel.showRunning"><div class="table-panel-table-header-inner ">
+                            R
+                    </div></th>
+                    <th ng-if="ctrl.panel.mode === 'Active' && ctrl.panel.showHeld"><div class="table-panel-table-header-inner ">
+                            H
+                    </div></th>
+
+                    <th><div class="table-panel-table-header-inner ">
+                            Submit Time/Command
+                    </div></th>
+                    <th><div class="table-panel-table-header-inner " title="Max used / requested memory">
+                            Memory (MB)
+                    </div></th>
+                    <th><div class="table-panel-table-header-inner " title="Max used / requested disk">
+                            Disk (MB)
+                    </div></th>
+                    <th><div class="table-panel-table-header-inner " title="Max used / requested walltime">
+                            Time (hr)
+                    </div></th>
+                    <th><div class="table-panel-table-header-inner ">
+                            Max Eff.
+                    </div></th>
+                    <th><div class="table-panel-table-header-inner " title ="Max number of times a job has started">
+                            Starts
+                    </div></th>
+
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+
