@@ -70,7 +70,18 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
       var panel = ctrl.panel;
       var pageCount = 0;
 
+      function getTableHeight() {
+          var panelHeight = ctrl.height;
+          /*if (pageCount > 1) {
+              panelHeight -= 26;
+          }*/
+          return (panelHeight - 31) + 'px';
+      }
+
       function renderPanel() {
+          var root = elem.find('.table-panel-scroll');
+          root.css({'max-height': panel.scroll ? getTableHeight() : ''});
+
           var tbody = elem.find('tbody');
           renderTable(tbody);
       }
@@ -232,98 +243,6 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
       return data;
   }
 
-
-  /*
-  setUnitFormat(subItem) {
-    this.panel.format = subItem.value;
-    this.render();
-  }
-
-  onDataError() {
-    this.series = [];
-    this.render();
-  }
-
-  changeSeriesColor(series, color) {
-    series.color = color;
-    this.panel.aliasColors[series.alias] = series.color;
-    this.render();
-  }
-
-  onRender() {
-    this.data = this.parseSeries(this.series);
-  }
-
-  parseSeries(series) {
-    return _.map(this.series, (serie, i) => {
-      return {
-        label: serie.alias,
-        data: serie.stats[this.panel.valueName],
-        color: this.panel.aliasColors[serie.alias] || this.$rootScope.colors[i]
-      };
-    });
-  }
-
-
-  seriesHandler(seriesData) {
-    var series = new TimeSeries({
-      datapoints: seriesData.datapoints,
-      alias: seriesData.target
-    });
-
-    series.flotpairs = series.getFlotPairs(this.panel.nullPointMode);
-    return series;
-  }
-
-  getDecimalsForValue(value) {
-    if (_.isNumber(this.panel.decimals)) {
-      return { decimals: this.panel.decimals, scaledDecimals: null };
-    }
-
-    var delta = value / 2;
-    var dec = -Math.floor(Math.log(delta) / Math.LN10);
-
-    var magn = Math.pow(10, -dec);
-    var norm = delta / magn; // norm is between 1.0 and 10.0
-    var size;
-
-    if (norm < 1.5) {
-      size = 1;
-    } else if (norm < 3) {
-      size = 2;
-      // special case for 2.5, requires an extra decimal
-      if (norm > 2.25) {
-        size = 2.5;
-        ++dec;
-      }
-    } else if (norm < 7.5) {
-      size = 5;
-    } else {
-      size = 10;
-    }
-
-    size *= magn;
-
-    // reduce starting decimals if not needed
-    if (Math.floor(value) === value) { dec = 0; }
-
-    var result = {};
-    result.decimals = Math.max(0, dec);
-    result.scaledDecimals = result.decimals - Math.floor(Math.log(size) / Math.LN10) + 2;
-
-    return result;
-  }
-
-  formatValue(value) {
-    var decimalInfo = this.getDecimalsForValue(value);
-    var formatFunc = kbn.valueFormats[this.panel.format];
-    if (formatFunc) {
-      return formatFunc(value, decimalInfo.decimals, decimalInfo.scaledDecimals);
-    }
-    return value;
-  }
-
-  */
 }
 
 UserJobsCtrl.templateUrl = 'module.html';

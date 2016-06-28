@@ -166,7 +166,18 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                         var panel = ctrl.panel;
                         var pageCount = 0;
 
+                        function getTableHeight() {
+                            var panelHeight = ctrl.height;
+                            /*if (pageCount > 1) {
+                                panelHeight -= 26;
+                            }*/
+                            return panelHeight - 31 + 'px';
+                        }
+
                         function renderPanel() {
+                            var root = elem.find('.table-panel-scroll');
+                            root.css({ 'max-height': panel.scroll ? getTableHeight() : '' });
+
                             var tbody = elem.find('tbody');
                             renderTable(tbody);
                         }
