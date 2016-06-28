@@ -203,30 +203,30 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                         }
 
                         function renderActiveRow(data) {
-                            var schedd = data['cmd']['hits']['hits'][0]['_source']['schedd'];
-                            var cmd = data['cmd']['hits']['hits'][0]['_source']['Cmd'].split('/').pop();
-                            var bg_hold = background_style(data['status']['buckets']['held']['doc_count'] * 100, 1.0);
-                            var request_mem = data['request_mem']['value'] * 1;
-                            var max_mem = data['max_mem']['value'] / 1024;
+                            var schedd = data.cmd.hits.hits[0]._source.schedd;
+                            var cmd = data.cmd.hits.hits[0]._source.Cmd.split('/').pop();
+                            var bg_hold = background_style(data.status.buckets.held.doc_count * 100, 1.0);
+                            var request_mem = data.request_mem.value * 1;
+                            var max_mem = data.max_mem.value / 1024;
                             var bg_mem = background_style(max_mem, request_mem);
-                            var request_disk = data['request_disk']['value'] / 1024;
-                            var max_disk = data['max_disk']['value'] / 1024;
+                            var request_disk = data.request_disk.value / 1024;
+                            var max_disk = data.max_disk.value / 1024;
                             var bg_disk = background_style(max_disk, request_disk);
-                            var max_cputime = data['max_cputime']['value'] / 3600;
-                            var max_walltime = data['max_walltime']['value'] / 3600;
+                            var max_cputime = data.max_cputime.value / 3600;
+                            var max_walltime = data.max_walltime.value / 3600;
                             var efficiency = "----";
                             if (max_walltime > 0) {
                                 efficiency = (max_cputime / max_walltime * 100).toFixed(1) + '%';
                             }
-                            var request_time = data['request_walltime']['value'] / 3600;
+                            var request_time = data.request_walltime.value / 3600;
                             var bg_time = background_style(max_walltime, request_time);
-                            var html = '<tr>' + '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/job-cluster-summary?var-cluster=' + data['key'] + '&var-schedd=' + schedd + '&from=' + ctrl.rangeRaw.from + '&to=' + ctrl.rangeRaw.to + '">' + data['key'] + '@' + schedd + '</a></td>';
+                            var html = '<tr>' + '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/job-cluster-summary?var-cluster=' + data['key'] + '&var-schedd=' + schedd + '&from=' + data.submit_date.value + '&to=' + ctrl.rangeRaw.to + '">' + data['key'] + '@' + schedd + '</a></td>';
                             if (panel.mode === 'Active') {
-                                html += '<td rowspan="2">' + data['status']['buckets']['idle']['doc_count'] + '</td>' + '<td rowspan="2">' + data['status']['buckets']['running']['doc_count'] + '</td>' + '<td rowspan="2"' + bg_hold + '>' + data['status']['buckets']['held']['doc_count'] + '</td>';
+                                html += '<td rowspan="2">' + data.status.buckets.idle.doc_count + '</td>' + '<td rowspan="2">' + data.status.buckets.running.doc_count + '</td>' + '<td rowspan="2"' + bg_hold + '>' + data.status.buckets.held.doc_count + '</td>';
                             }
-                            html += '<td>' + data['submit_date']['value_as_string'] + '</td>' + '<td' + bg_mem + '>' + max_mem.toFixed(0) + ' / ' + request_mem.toFixed(0) + '</td>' + '<td' + bg_disk + '>' + max_disk.toFixed(0) + ' / ' + request_disk.toFixed(0) + '</td>' + '<td' + bg_time + '>' + max_walltime.toFixed(0) + ' / ' + request_time.toFixed(0) + '</td>' +
+                            html += '<td>' + data.submit_date.value_as_string + '</td>' + '<td' + bg_mem + '>' + max_mem.toFixed(0) + ' / ' + request_mem.toFixed(0) + '</td>' + '<td' + bg_disk + '>' + max_disk.toFixed(0) + ' / ' + request_disk.toFixed(0) + '</td>' + '<td' + bg_time + '>' + max_walltime.toFixed(0) + ' / ' + request_time.toFixed(0) + '</td>' +
                             //'<td>'+ max_cputime.toFixed(2) +' hr</td>'+
-                            '<td>' + efficiency + '</td>' + '<td>' + data['max_restarts'].value + '&nbsp;&nbsp;&nbsp;&nbsp;</td>' + '</tr><tr><td colspan="6" class="job-command">' + cmd + '</td>' + '</tr>';
+                            '<td>' + efficiency + '</td>' + '<td>' + data.max_restarts.value + '&nbsp;&nbsp;&nbsp;&nbsp;</td>' + '</tr><tr><td colspan="6" class="job-command">' + cmd + '</td>' + '</tr>';
                             return html;
                         }
 
@@ -297,7 +297,7 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                                             }
                                         },
                                         "submit_date": {
-                                            "max": {
+                                            "min": {
                                                 "field": "submit_date"
                                             }
                                         },
