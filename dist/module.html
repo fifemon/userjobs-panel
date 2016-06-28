@@ -18,37 +18,83 @@
         <table class="table-panel-table">
             <thead>
                 <tr>
-                    <th><div class="table-panel-table-header-inner ">
+                    <th><div class="table-panel-table-header-inner pointer" ng-click="ctrl.toggleSort('_term')">
                             Cluster
+                            <span class="table-panel-table-header-controls" ng-if="ctrl.panel.sortField === '_term'">
+                                <i class="fa fa-caret-down" ng-show="ctrl.panel.sortOrder === 'desc'"></i>
+                                <i class="fa fa-caret-up" ng-hide="ctrl.panel.sortOrder === 'desc'"></i>
+                            </span>
                     </div></th>
 
-                    <th ng-if="ctrl.panel.mode === 'Active' && ctrl.panel.showIdle"><div class="table-panel-table-header-inner ">
+                    <th ng-if="ctrl.panel.mode === 'Active' && ctrl.panel.showIdle">
+                        <div class="table-panel-table-header-inner pointer" ng-click="ctrl.toggleSort('idle')">
                             I
-                    </div></th>
-                    <th ng-if="ctrl.panel.mode === 'Active' && ctrl.panel.showRunning"><div class="table-panel-table-header-inner ">
+                            <span class="table-panel-table-header-controls" ng-if="ctrl.panel.sortField === 'idle'">
+                                <i class="fa fa-caret-down" ng-show="ctrl.panel.sortOrder === 'desc'"></i>
+                                <i class="fa fa-caret-up" ng-hide="ctrl.panel.sortOrder === 'desc'"></i>
+                            </span>
+                        </div>
+                    </th>
+                    <th ng-if="ctrl.panel.mode === 'Active' && ctrl.panel.showRunning" ng-click="ctrl.toggleSort('running')">
+                        <div class="table-panel-table-header-inner ">
                             R
-                    </div></th>
-                    <th ng-if="ctrl.panel.mode === 'Active' && ctrl.panel.showHeld"><div class="table-panel-table-header-inner ">
+                            <span class="table-panel-table-header-controls" ng-if="ctrl.panel.sortField === 'running'">
+                                <i class="fa fa-caret-down" ng-show="ctrl.panel.sortOrder === 'desc'"></i>
+                                <i class="fa fa-caret-up" ng-hide="ctrl.panel.sortOrder === 'desc'"></i>
+                            </span>
+                        </div>
+                    </th>
+                    <th ng-if="ctrl.panel.mode === 'Active' && ctrl.panel.showHeld" ng-click="ctrl.toggleSort('held')">
+                        <div class="table-panel-table-header-inner ">
                             H
-                    </div></th>
+                            <span class="table-panel-table-header-controls" ng-if="ctrl.panel.sortField === 'held'">
+                                <i class="fa fa-caret-down" ng-show="ctrl.panel.sortOrder === 'desc'"></i>
+                                <i class="fa fa-caret-up" ng-hide="ctrl.panel.sortOrder === 'desc'"></i>
+                            </span>
+                        </div>
+                    </th>
 
-                    <th><div class="table-panel-table-header-inner ">
-                            Submit Time/Command
+                    <th><div class="table-panel-table-header-inner pointer" ng-click="ctrl.toggleSort('submit_date')">
+                            Submit Time
+                            <span class="table-panel-table-header-controls" ng-if="ctrl.panel.sortField === 'submit_date'">
+                                <i class="fa fa-caret-down" ng-show="ctrl.panel.sortOrder === 'desc'"></i>
+                                <i class="fa fa-caret-up" ng-hide="ctrl.panel.sortOrder === 'desc'"></i>
+                            </span>
                     </div></th>
-                    <th><div class="table-panel-table-header-inner " title="Max used / requested memory">
+                    <th><div class="table-panel-table-header-inner pointer" title="Max used / requested memory" ng-click="ctrl.toggleSort('max_mem')">
                             Memory (MB)
+                            <span class="table-panel-table-header-controls" ng-if="ctrl.panel.sortField === 'max_mem'">
+                                <i class="fa fa-caret-down" ng-show="ctrl.panel.sortOrder === 'desc'"></i>
+                                <i class="fa fa-caret-up" ng-hide="ctrl.panel.sortOrder === 'desc'"></i>
+                            </span>
                     </div></th>
-                    <th><div class="table-panel-table-header-inner " title="Max used / requested disk">
+                    <th><div class="table-panel-table-header-inner pointer" title="Max used / requested disk" ng-click="ctrl.toggleSort('max_disk')">
                             Disk (MB)
+                            <span class="table-panel-table-header-controls" ng-if="ctrl.panel.sortField === 'max_disk'">
+                                <i class="fa fa-caret-down" ng-show="ctrl.panel.sortOrder === 'desc'"></i>
+                                <i class="fa fa-caret-up" ng-hide="ctrl.panel.sortOrder === 'desc'"></i>
+                            </span>
                     </div></th>
-                    <th><div class="table-panel-table-header-inner " title="Max used / requested walltime">
+                    <th><div class="table-panel-table-header-inner pointer" title="Max used / requested walltime" ng-click="ctrl.toggleSort('max_walltime')">
                             Time (hr)
+                            <span class="table-panel-table-header-controls" ng-if="ctrl.panel.sortField === 'max_walltime'">
+                                <i class="fa fa-caret-down" ng-show="ctrl.panel.sortOrder === 'desc'"></i>
+                                <i class="fa fa-caret-up" ng-hide="ctrl.panel.sortOrder === 'desc'"></i>
+                            </span>
                     </div></th>
-                    <th><div class="table-panel-table-header-inner ">
+                    <th><div class="table-panel-table-header-inner pointer" title="Maximum CPU efficieny (CPU time / wall time)" ng-click="ctrl.toggleSort('max_efficiency')">
                             Max Eff.
+                            <span class="table-panel-table-header-controls" ng-if="ctrl.panel.sortField === 'max_efficiency'">
+                                <i class="fa fa-caret-down" ng-show="ctrl.panel.sortOrder === 'desc'"></i>
+                                <i class="fa fa-caret-up" ng-hide="ctrl.panel.sortOrder === 'desc'"></i>
+                            </span>
                     </div></th>
-                    <th><div class="table-panel-table-header-inner " title ="Max number of times a job has started">
+                    <th><div class="table-panel-table-header-inner pointer" title ="Max number of times a job has started" ng-click="ctrl.toggleSort('max_restarts')">
                             Starts
+                            <span class="table-panel-table-header-controls" ng-if="ctrl.panel.sortField === 'max_restarts'">
+                                <i class="fa fa-caret-down" ng-show="ctrl.panel.sortOrder === 'desc'"></i>
+                                <i class="fa fa-caret-up" ng-hide="ctrl.panel.sortOrder === 'desc'"></i>
+                            </span>
                     </div></th>
 
                 </tr>

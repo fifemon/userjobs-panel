@@ -1,7 +1,6 @@
 import {MetricsPanelCtrl} from 'app/plugins/sdk';
 import _ from 'lodash';
-import kbn from 'app/core/utils/kbn';
-import TimeSeries from 'app/core/time_series';
+import moment from 'moment';
 
 function background_style(value, limit) {
     var bg;
@@ -31,8 +30,11 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
         showRunning: true,
         showHeld: true,
         size: 100,
-        scroll: false
+        scroll: false,
+        sortField: 'submit_date',
+        sortOrder: 'asc'
     };
+    _.defaults(this.panel, panelDefaults);
 
     this.data = [];
     this.docs = 0;
@@ -40,12 +42,9 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
     this.docsTotal = 0;
     this.rowCount = 0;
 
-    _.defaults(this.panel, panelDefaults);
-
     this.events.on('data-received', this.onDataReceived.bind(this));
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
   }
-
 
   onInitEditMode() {
     this.addEditorTab('Options', 'public/plugins/fifemon-userjobs-panel/editor.html', 2);
@@ -74,6 +73,16 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
 
   render() {
       return super.render(this.data);
+  }
+
+  toggleSort(field) {
+      if (field === this.panel.sortField) {
+          this.panel.sortOrder = this.panel.sortOrder === 'asc' ? 'desc' : 'asc';
+      } else {
+          this.panel.sortField = field;
+          this.panel.sortOrder = 'asc';
+      }
+      this.refresh();
   }
 
   link(scope, elem, attrs, ctrl) {
@@ -107,9 +116,10 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
       }
 
       function renderActiveRow(data) {
+          var submit_date_str = moment(data.submit_date.value_as_string).format('ddd MMM DD hh:mm');
           var schedd = data.cmd.hits.hits[0]._source.schedd;
           var cmd = data.cmd.hits.hits[0]._source.Cmd.split('/').pop();
-          var bg_hold = background_style(data.status.buckets.held.doc_count*100,1.0);
+          var bg_hold = background_style(data.held.doc_count*100,1.0);
           var request_mem = data.request_mem.value*1;
           var max_mem = data.max_mem.value / 1024;
           var bg_mem=background_style(max_mem,request_mem);
@@ -120,18 +130,18 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
           var max_walltime = data.max_walltime.value / 3600;
           var efficiency="----";
           if (max_walltime > 0) {
-              efficiency = (max_cputime/max_walltime*100).toFixed(1)+'%';
+              efficiency = (data.max_efficiency.value*100).toFixed(1)+'%';
           }
           var request_time = data.request_walltime.value / 3600;
           var bg_time=background_style(max_walltime,request_time);
           var html = '<tr>'+
-              '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/job-cluster-summary?var-cluster='+data['key']+'&var-schedd='+schedd+'&from='+data.submit_date.value+'&to='+ctrl.rangeRaw.to+'">'+data['key']+'@'+schedd+'</a></td>';
+              '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/job-cluster-summary?var-cluster='+data.key+'&var-schedd='+schedd+'&from='+data.submit_date.value+'&to='+ctrl.rangeRaw.to+'">'+data.key+'@'+schedd+'</a></td>';
           if (panel.mode === 'Active') {
-              html += '<td rowspan="2">'+data.status.buckets.idle.doc_count+'</td>'+
-              '<td rowspan="2">'+data.status.buckets.running.doc_count+'</td>'+
-              '<td rowspan="2"' + bg_hold + '>'+data.status.buckets.held.doc_count+'</td>';
+              html += '<td rowspan="2">'+data.idle.doc_count+'</td>'+
+              '<td rowspan="2">'+data.running.doc_count+'</td>'+
+              '<td rowspan="2"' + bg_hold + '>'+data.held.doc_count+'</td>';
           }
-          html += '<td>'+data.submit_date.value_as_string+'</td>'+
+          html += '<td>'+submit_date_str+'</td>'+
               '<td' + bg_mem + '>' + max_mem.toFixed(0) + ' / ' + request_mem.toFixed(0) +'</td>'+
               '<td' + bg_disk + '>' + max_disk.toFixed(0) + ' / ' + request_disk.toFixed(0) +'</td>'+
               '<td' + bg_time + '>' + max_walltime.toFixed(0) + ' / ' + request_time.toFixed(0) +'</td>'+
@@ -169,6 +179,9 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
           to = 'now-10m';
       }
 
+      var sort = {};
+      sort[this.panel.sortField] = this.panel.sortOrder;
+
       var data = {
           "size": 0,
           "query": {
@@ -186,7 +199,7 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
                   "terms": {
                       "field": "cluster",
                       "size": this.panel.size,
-                      "order" : { "submit_date" : "asc" }
+                      "order" : sort
                   },
                   "aggs": {
                       "max_mem": {
@@ -219,6 +232,11 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
                               "field": "NumJobStarts"
                           }
                       },
+                      "max_efficiency": {
+                          "max": {
+                              "field": "efficiency"
+                          }
+                      },
                       "max_cputime": {
                           "max": {
                               "field": "RemoteUserCpu"
@@ -242,17 +260,21 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
                               }
                           }
                       },
-                      "status": {
-                          "filters": {
-                              "filters": {
-                                  "idle": { "term": { "status": 1 }},
-                                  "running": { "term": { "status": 2 }},
-                                  "cancelled": { "term": { "status": 3 }},
-                                  "complete": { "term": { "status": 4 }},
-                                  "held": { "term": { "status": 5 }}
-                              }
-                          }
-                      }
+                      "idle": {
+                          "filter": { "term": { "status": 1 }}
+                      },
+                      "running": {
+                          "filter": { "term": { "status": 2 }}
+                      },
+                      "cancelled": {
+                          "filter": { "term": { "status": 3 }}
+                      },
+                      "complete": {
+                          "filter": { "term": { "status": 4 }}
+                      },
+                      "held": {
+                          "filter": { "term": { "status": 5 }}
+                      },
                   }
               }
           }

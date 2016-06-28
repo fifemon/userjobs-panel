@@ -1,9 +1,9 @@
 'use strict';
 
-System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/time_series'], function (_export, _context) {
+System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _context) {
     "use strict";
 
-    var MetricsPanelCtrl, _, kbn, TimeSeries, _createClass, _get, UserJobsCtrl;
+    var MetricsPanelCtrl, _, moment, _createClass, _get, UserJobsCtrl;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -52,10 +52,8 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
             MetricsPanelCtrl = _appPluginsSdk.MetricsPanelCtrl;
         }, function (_lodash) {
             _ = _lodash.default;
-        }, function (_appCoreUtilsKbn) {
-            kbn = _appCoreUtilsKbn.default;
-        }, function (_appCoreTime_series) {
-            TimeSeries = _appCoreTime_series.default;
+        }, function (_moment) {
+            moment = _moment.default;
         }],
         execute: function () {
             _createClass = function () {
@@ -121,16 +119,17 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                         showRunning: true,
                         showHeld: true,
                         size: 100,
-                        scroll: false
+                        scroll: false,
+                        sortField: 'submit_date',
+                        sortOrder: 'asc'
                     };
+                    _.defaults(_this.panel, panelDefaults);
 
                     _this.data = [];
                     _this.docs = 0;
                     _this.docsMissing = 0;
                     _this.docsTotal = 0;
                     _this.rowCount = 0;
-
-                    _.defaults(_this.panel, panelDefaults);
 
                     _this.events.on('data-received', _this.onDataReceived.bind(_this));
                     _this.events.on('init-edit-mode', _this.onInitEditMode.bind(_this));
@@ -171,6 +170,17 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                         return _get(Object.getPrototypeOf(UserJobsCtrl.prototype), 'render', this).call(this, this.data);
                     }
                 }, {
+                    key: 'toggleSort',
+                    value: function toggleSort(field) {
+                        if (field === this.panel.sortField) {
+                            this.panel.sortOrder = this.panel.sortOrder === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            this.panel.sortField = field;
+                            this.panel.sortOrder = 'asc';
+                        }
+                        this.refresh();
+                    }
+                }, {
                     key: 'link',
                     value: function link(scope, elem, attrs, ctrl) {
                         var data;
@@ -203,9 +213,10 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                         }
 
                         function renderActiveRow(data) {
+                            var submit_date_str = moment(data.submit_date.value_as_string).format('ddd MMM DD hh:mm');
                             var schedd = data.cmd.hits.hits[0]._source.schedd;
                             var cmd = data.cmd.hits.hits[0]._source.Cmd.split('/').pop();
-                            var bg_hold = background_style(data.status.buckets.held.doc_count * 100, 1.0);
+                            var bg_hold = background_style(data.held.doc_count * 100, 1.0);
                             var request_mem = data.request_mem.value * 1;
                             var max_mem = data.max_mem.value / 1024;
                             var bg_mem = background_style(max_mem, request_mem);
@@ -216,15 +227,15 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                             var max_walltime = data.max_walltime.value / 3600;
                             var efficiency = "----";
                             if (max_walltime > 0) {
-                                efficiency = (max_cputime / max_walltime * 100).toFixed(1) + '%';
+                                efficiency = (data.max_efficiency.value * 100).toFixed(1) + '%';
                             }
                             var request_time = data.request_walltime.value / 3600;
                             var bg_time = background_style(max_walltime, request_time);
-                            var html = '<tr>' + '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/job-cluster-summary?var-cluster=' + data['key'] + '&var-schedd=' + schedd + '&from=' + data.submit_date.value + '&to=' + ctrl.rangeRaw.to + '">' + data['key'] + '@' + schedd + '</a></td>';
+                            var html = '<tr>' + '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/job-cluster-summary?var-cluster=' + data.key + '&var-schedd=' + schedd + '&from=' + data.submit_date.value + '&to=' + ctrl.rangeRaw.to + '">' + data.key + '@' + schedd + '</a></td>';
                             if (panel.mode === 'Active') {
-                                html += '<td rowspan="2">' + data.status.buckets.idle.doc_count + '</td>' + '<td rowspan="2">' + data.status.buckets.running.doc_count + '</td>' + '<td rowspan="2"' + bg_hold + '>' + data.status.buckets.held.doc_count + '</td>';
+                                html += '<td rowspan="2">' + data.idle.doc_count + '</td>' + '<td rowspan="2">' + data.running.doc_count + '</td>' + '<td rowspan="2"' + bg_hold + '>' + data.held.doc_count + '</td>';
                             }
-                            html += '<td>' + data.submit_date.value_as_string + '</td>' + '<td' + bg_mem + '>' + max_mem.toFixed(0) + ' / ' + request_mem.toFixed(0) + '</td>' + '<td' + bg_disk + '>' + max_disk.toFixed(0) + ' / ' + request_disk.toFixed(0) + '</td>' + '<td' + bg_time + '>' + max_walltime.toFixed(0) + ' / ' + request_time.toFixed(0) + '</td>' +
+                            html += '<td>' + submit_date_str + '</td>' + '<td' + bg_mem + '>' + max_mem.toFixed(0) + ' / ' + request_mem.toFixed(0) + '</td>' + '<td' + bg_disk + '>' + max_disk.toFixed(0) + ' / ' + request_disk.toFixed(0) + '</td>' + '<td' + bg_time + '>' + max_walltime.toFixed(0) + ' / ' + request_time.toFixed(0) + '</td>' +
                             //'<td>'+ max_cputime.toFixed(2) +' hr</td>'+
                             '<td>' + efficiency + '</td>' + '<td>' + data.max_restarts.value + '&nbsp;&nbsp;&nbsp;&nbsp;</td>' + '</tr><tr><td colspan="6" class="job-command">' + cmd + '</td>' + '</tr>';
                             return html;
@@ -256,6 +267,9 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                             to = 'now-10m';
                         }
 
+                        var sort = {};
+                        sort[this.panel.sortField] = this.panel.sortOrder;
+
                         var data = {
                             "size": 0,
                             "query": {
@@ -273,7 +287,7 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                                     "terms": {
                                         "field": "cluster",
                                         "size": this.panel.size,
-                                        "order": { "submit_date": "asc" }
+                                        "order": sort
                                     },
                                     "aggs": {
                                         "max_mem": {
@@ -306,6 +320,11 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                                                 "field": "NumJobStarts"
                                             }
                                         },
+                                        "max_efficiency": {
+                                            "max": {
+                                                "field": "efficiency"
+                                            }
+                                        },
                                         "max_cputime": {
                                             "max": {
                                                 "field": "RemoteUserCpu"
@@ -329,16 +348,20 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                                                 }
                                             }
                                         },
-                                        "status": {
-                                            "filters": {
-                                                "filters": {
-                                                    "idle": { "term": { "status": 1 } },
-                                                    "running": { "term": { "status": 2 } },
-                                                    "cancelled": { "term": { "status": 3 } },
-                                                    "complete": { "term": { "status": 4 } },
-                                                    "held": { "term": { "status": 5 } }
-                                                }
-                                            }
+                                        "idle": {
+                                            "filter": { "term": { "status": 1 } }
+                                        },
+                                        "running": {
+                                            "filter": { "term": { "status": 2 } }
+                                        },
+                                        "cancelled": {
+                                            "filter": { "term": { "status": 3 } }
+                                        },
+                                        "complete": {
+                                            "filter": { "term": { "status": 4 } }
+                                        },
+                                        "held": {
+                                            "filter": { "term": { "status": 5 } }
                                         }
                                     }
                                 }
