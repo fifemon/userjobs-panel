@@ -4,11 +4,12 @@
 }
 </style>
 
-<h5>Table is limited to {{ctrl.panel.size}} job clusters; use time picker or filter query to limit results.</h5>
+<p>{{ctrl.docs}} jobs in {{ctrl.rowCount}} clusters. 
+<i ng-if="ctrl.docsMissing > 0" style="color:#F79520">Warning: {{ctrl.docsMissing}} jobs are not shown! Table is limited to {{ctrl.panel.size}} job clusters; use<span ng-if="ctrl.panel.mode === 'Completed'"> time picker or</span> query to limit results.</i>
+</p>
 <div class="gf-form">
-    <span class="gf-form-label">Filter:</span>
-    <input type="text" class="gf-form-input max-width-10" ng-model="ctrl.panel.userQuery" ng-change="ctrl.refresh()" placeholder="query"/>
-    <i>(general search query, e.g. &quot;keepup&quot;. <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax">Query syntax<i class="fa fa-fw fa-external-link"></i></a>)</i>
+    <input type="text" class="gf-form-input max-width-10" ng-model="ctrl.panel.userQuery" ng-change="ctrl.refresh()" placeholder="query" ng-model-options="{updateOn: 'default blur', debounce: {default: 1000, blur: 0} }"/>
+    <i>(filter results by search terms, e.g. cluster #, command, etc. <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax">Query syntax<i class="fa fa-fw fa-external-link"></i></a>)</i>
 </div>
 
 <div class="table-panel-container">

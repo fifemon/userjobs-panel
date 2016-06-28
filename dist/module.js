@@ -104,12 +104,13 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
             _export('PanelCtrl', _export('UserJobsCtrl', UserJobsCtrl = function (_MetricsPanelCtrl) {
                 _inherits(UserJobsCtrl, _MetricsPanelCtrl);
 
-                function UserJobsCtrl($scope, $injector, $rootScope) {
+                function UserJobsCtrl($scope, $injector, $rootScope, templateSrv) {
                     _classCallCheck(this, UserJobsCtrl);
 
                     var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(UserJobsCtrl).call(this, $scope, $injector));
 
                     _this.$rootScope = $rootScope;
+                    _this.templateSrv = templateSrv;
 
                     var panelDefaults = {
                         index: "",
@@ -122,6 +123,12 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                         size: 100,
                         scroll: false
                     };
+
+                    _this.data = [];
+                    _this.docs = 0;
+                    _this.docsMissing = 0;
+                    _this.docsTotal = 0;
+                    _this.rowCount = 0;
 
                     _.defaults(_this.panel, panelDefaults);
 
@@ -148,7 +155,11 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                     key: 'onDataReceived',
                     value: function onDataReceived(data) {
                         if (data) {
-                            this.data = data['aggregations']['cluster']['buckets'];
+                            this.data = data.aggregations.cluster.buckets;
+                            this.docsMissing = data.aggregations.cluster.sum_other_doc_count;
+                            this.docsTotal = data.hits.total;
+                            this.docs = this.docsTotal - this.docsMissing;
+                            this.rowCount = this.data.length;
                         } else {
                             this.data = [];
                         }
@@ -209,9 +220,14 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                             }
                             var request_time = data['request_walltime']['value'] / 3600;
                             var bg_time = background_style(max_walltime, request_time);
-                            return '<tr>' + '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/job-cluster-summary?var-cluster=' + data['key'] + '&var-schedd=' + schedd + '">' + data['key'] + '@' + schedd + '</a></td>' + '<td rowspan="2">' + data['status']['buckets']['idle']['doc_count'] + '</td>' + '<td rowspan="2">' + data['status']['buckets']['running']['doc_count'] + '</td>' + '<td rowspan="2"' + bg_hold + '>' + data['status']['buckets']['held']['doc_count'] + '</td>' + '<td>' + data['submit_date']['value_as_string'] + '</td>' + '<td' + bg_mem + '>' + max_mem.toFixed(0) + ' / ' + request_mem.toFixed(0) + '</td>' + '<td' + bg_disk + '>' + max_disk.toFixed(0) + ' / ' + request_disk.toFixed(0) + '</td>' + '<td' + bg_time + '>' + max_walltime.toFixed(0) + ' / ' + request_time.toFixed(0) + '</td>' +
+                            var html = '<tr>' + '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/job-cluster-summary?var-cluster=' + data['key'] + '&var-schedd=' + schedd + '">' + data['key'] + '@' + schedd + '</a></td>';
+                            if (panel.mode === 'Active') {
+                                html += '<td rowspan="2">' + data['status']['buckets']['idle']['doc_count'] + '</td>' + '<td rowspan="2">' + data['status']['buckets']['running']['doc_count'] + '</td>' + '<td rowspan="2"' + bg_hold + '>' + data['status']['buckets']['held']['doc_count'] + '</td>';
+                            }
+                            html += '<td>' + data['submit_date']['value_as_string'] + '</td>' + '<td' + bg_mem + '>' + max_mem.toFixed(0) + ' / ' + request_mem.toFixed(0) + '</td>' + '<td' + bg_disk + '>' + max_disk.toFixed(0) + ' / ' + request_disk.toFixed(0) + '</td>' + '<td' + bg_time + '>' + max_walltime.toFixed(0) + ' / ' + request_time.toFixed(0) + '</td>' +
                             //'<td>'+ max_cputime.toFixed(2) +' hr</td>'+
                             '<td>' + efficiency + '</td>' + '<td>' + data['max_restarts'].value + '&nbsp;&nbsp;&nbsp;&nbsp;</td>' + '</tr><tr><td colspan="6" class="job-command">' + cmd + '</td>' + '</tr>';
+                            return html;
                         }
 
                         ctrl.events.on('render', function (renderData) {
@@ -225,16 +241,19 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                 }, {
                     key: 'get_clusters_query',
                     value: function get_clusters_query() {
-                        var q = this.panel.query;
+                        var q = this.templateSrv.replace(this.panel.query, this.panel.scopedVars);
                         if (this.panel.userQuery !== '') {
                             q += ' AND ' + this.panel.userQuery;
                         }
 
-                        var from = this.dashboard.time.from;
-                        var to = this.dashboard.time.to;
+                        var from = this.rangeRaw.from;
+                        var to = this.rangeRaw.to;
+                        // time range hack; really should have separate indices for active and completed jobs
                         if (this.panel.mode === 'Active') {
                             from = 'now-10m';
                             to = 'now';
+                        } else if (this.panel.mode === 'Completed' && to === 'now') {
+                            to = 'now-10m';
                         }
 
                         var data = {
