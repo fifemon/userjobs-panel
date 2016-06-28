@@ -125,7 +125,7 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
           var request_time = data['request_walltime']['value']/3600;
           var bg_time=background_style(max_walltime,request_time);
           var html = '<tr>'+
-              '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/job-cluster-summary?var-cluster='+data['key']+'&var-schedd='+schedd+'">'+data['key']+'@'+schedd+'</a></td>';
+              '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/job-cluster-summary?var-cluster='+data['key']+'&var-schedd='+schedd+'&from='+ctrl.rangeRaw.from+'&to='+ctrl.rangeRaw.to+'">'+data['key']+'@'+schedd+'</a></td>';
           if (panel.mode === 'Active') {
               html += '<td rowspan="2">'+data['status']['buckets']['idle']['doc_count']+'</td>'+
               '<td rowspan="2">'+data['status']['buckets']['running']['doc_count']+'</td>'+
