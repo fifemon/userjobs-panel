@@ -114,10 +114,7 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                         index: "",
                         query: "*",
                         userQuery: "",
-                        mode: "Completed", // "Active","Completed"
-                        showIdle: true,
-                        showRunning: true,
-                        showHeld: true,
+                        mode: "Active", // "Active","Completed"
                         size: 100,
                         scroll: false,
                         sortField: 'submit_date',
@@ -130,6 +127,7 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                     _this.docsMissing = 0;
                     _this.docsTotal = 0;
                     _this.rowCount = 0;
+                    _this.columns = [{ name: "Cluster", title: "Job Cluster ID", field: "_term", modes: ['Active', 'Completed'] }, { name: "I", title: "# Idle Jobs", field: "idle", modes: ['Active'] }, { name: "R", title: "# Running Jobs", field: "running", modes: ['Active'] }, { name: "H", title: "# Held Jobs", field: "held", modes: ['Active'] }, { name: "Submit Time", title: "Time job was sumbitted", field: "submit_date", modes: ['Active', 'Completed'] }, { name: "Memory (MB)", title: "Max used and requested memory", field: "max_mem", modes: ['Active', 'Completed'] }, { name: "Disk (MB)", title: "Max used and requested disk", field: "max_disk", modes: ['Active', 'Completed'] }, { name: "Time (hr)", title: "Max used and requested walltime", field: "max_walltime", modes: ['Active', 'Completed'] }, { name: "Max Eff.", title: "Max CPU efficiency (CPU time / walltime)", field: "max_efficiency", modes: ['Active', 'Completed'] }, { name: "Starts", title: "Max number of times a job has started", field: "max_restarts", modes: ['Active', 'Completed'] }];
 
                     _this.events.on('data-received', _this.onDataReceived.bind(_this));
                     _this.events.on('init-edit-mode', _this.onInitEditMode.bind(_this));

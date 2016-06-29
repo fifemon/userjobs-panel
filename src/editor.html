@@ -15,11 +15,6 @@
 				<select class="gf-form-input" ng-model="ctrl.panel.mode" ng-options="v for v in ['Active','Completed']" ng-change="ctrl.refresh()"></select>
 			</div>
 		</div>
-		<div class="gf-form" ng-if="ctrl.panel.mode === 'Active'">
-            <gf-form-switch class="gf-form" label="Idle" label-class="width-4" checked="ctrl.panel.showIdle" on-change="ctrl.render()"></gf-form-switch>
-            <gf-form-switch class="gf-form" label="Running" label-class="width-4" checked="ctrl.panel.showRunning" on-change="ctrl.render()"></gf-form-switch>
-            <gf-form-switch class="gf-form" label="Held" label-class="width-4" checked="ctrl.panel.showHeld" on-change="ctrl.render()"></gf-form-switch>
-		</div>
 	</div>
 
 	<div class="section gf-form-group">

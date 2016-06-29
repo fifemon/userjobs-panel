@@ -25,10 +25,7 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
         index: "",
         query: "*",
         userQuery: "",
-        mode: "Completed", // "Active","Completed"
-        showIdle: true,
-        showRunning: true,
-        showHeld: true,
+        mode: "Active", // "Active","Completed"
         size: 100,
         scroll: false,
         sortField: 'submit_date',
@@ -41,6 +38,18 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
     this.docsMissing = 0;
     this.docsTotal = 0;
     this.rowCount = 0;
+    this.columns = [
+        {name: "Cluster", title: "Job Cluster ID", field: "_term", modes:['Active','Completed']},
+        {name: "I", title: "# Idle Jobs", field: "idle", modes:['Active']},
+        {name: "R", title: "# Running Jobs", field: "running", modes:['Active']},
+        {name: "H", title: "# Held Jobs", field: "held", modes:['Active']},
+        {name: "Submit Time", title: "Time job was sumbitted", field: "submit_date", modes:['Active','Completed']},
+        {name: "Memory (MB)", title: "Max used and requested memory", field: "max_mem", modes:['Active','Completed']},
+        {name: "Disk (MB)", title: "Max used and requested disk", field: "max_disk", modes:['Active','Completed']},
+        {name: "Time (hr)", title: "Max used and requested walltime", field: "max_walltime", modes:['Active','Completed']},
+        {name: "Max Eff.", title: "Max CPU efficiency (CPU time / walltime)", field: "max_efficiency", modes:['Active','Completed']},
+        {name: "Starts", title: "Max number of times a job has started", field: "max_restarts", modes:['Active','Completed']}
+    ];
 
     this.events.on('data-received', this.onDataReceived.bind(this));
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
