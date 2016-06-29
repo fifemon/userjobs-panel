@@ -26,3 +26,22 @@
 		<gf-form-switch class="gf-form" label="Scroll" label-class="width-8" checked="ctrl.panel.scroll" on-change="ctrl.render()"></gf-form-switch>
 	</div>
 </div>
+
+<div class="editor-row">
+	<div class="section gf-form-group">
+		<h5 class="section-heading">Queries</h5>
+        <div class="gf-form" ng-repeat="query in ctrl.panel.queries">
+            <input type="test" class="gf-form-input width-15" ng-model="query.name">
+            <input type="test" class="gf-form-input width-30" ng-model="query.query">
+            <label class="gf-form-label" ng-if="query.name !== '-- custom-- '">
+                <a class="pointer" ng-click="ctrl.removeQuery(query.name)"><i class="fa fa-trash"></i></a>
+            </label>
+        </div>
+    </div>
+    <div class="gf-form gf-form--offset-1">
+        <button class="btn btn-inverse gf-form-btn" ng-click="ctrl.addQuery()">
+            <i class="fa fa-plus"></i>&nbsp;
+            Add query
+        </button>
+    </div>
+</div>

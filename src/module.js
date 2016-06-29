@@ -24,12 +24,20 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
     var panelDefaults = {
         index: "",
         query: "*",
-        userQuery: "",
         mode: "Active", // "Active","Completed"
         size: 100,
         scroll: false,
         sortField: 'submit_date',
-        sortOrder: 'asc'
+        sortOrder: 'asc',
+        queries: [
+            {name: "all jobs", query:""},
+            {name: "idle jobs", query: "status:1"},
+            {name: "running jobs", query: "status:2"},
+            {name: "held jobs", query: "status:5"},
+            {name: "jobs exceeding request", query:"memory_ratio:>1 disk_ratio:>1 time_ratio:>1"},
+            {name: "restarted jobs", query:"NumJobStarts:>1"},
+            {name: "-- custom --", query:""}
+        ]
     };
     _.defaults(this.panel, panelDefaults);
 
@@ -38,6 +46,8 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
     this.docsMissing = 0;
     this.docsTotal = 0;
     this.rowCount = 0;
+    this.filterQuery = {name: "all jobs",query:""};
+    this.customQuery = "";
     this.columns = [
         {name: "Cluster", title: "Job Cluster ID", field: "_term", modes:['Active','Completed']},
         {name: "I", title: "# Idle Jobs", field: "idle", modes:['Active']},
@@ -92,6 +102,16 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
           this.panel.sortOrder = 'asc';
       }
       this.refresh();
+  }
+
+  addQuery() {
+      var custom = this.panel.queries.pop();
+      this.panel.queries.push({name:'new query',query:''});
+      this.panel.queries.push(custom);
+  }
+
+  removeQuery(name) {
+      _.remove(this.panel.queries, {'name':name});
   }
 
   link(scope, elem, attrs, ctrl) {
@@ -174,8 +194,12 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
 
   get_clusters_query() {
       var q = this.templateSrv.replace(this.panel.query, this.panel.scopedVars);
-      if (this.panel.userQuery !== '') {
-          q += ' AND ' + this.panel.userQuery;
+      if (this.filterQuery && this.filterQuery.name === '-- custom --') {
+          if (this.customQuery !== '') {
+              q += ' AND (' + this.customQuery + ')';
+          }
+      } else if (this.filterQuery && this.filterQuery.query !== '') {
+          q += ' AND (' + this.filterQuery.query + ')';
       }
 
       var from = this.rangeRaw.from;

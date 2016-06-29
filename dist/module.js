@@ -113,12 +113,12 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                     var panelDefaults = {
                         index: "",
                         query: "*",
-                        userQuery: "",
                         mode: "Active", // "Active","Completed"
                         size: 100,
                         scroll: false,
                         sortField: 'submit_date',
-                        sortOrder: 'asc'
+                        sortOrder: 'asc',
+                        queries: [{ name: "all jobs", query: "" }, { name: "idle jobs", query: "status:1" }, { name: "running jobs", query: "status:2" }, { name: "held jobs", query: "status:5" }, { name: "jobs exceeding request", query: "memory_ratio:>1 disk_ratio:>1 time_ratio:>1" }, { name: "restarted jobs", query: "NumJobStarts:>1" }, { name: "-- custom --", query: "" }]
                     };
                     _.defaults(_this.panel, panelDefaults);
 
@@ -127,6 +127,8 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                     _this.docsMissing = 0;
                     _this.docsTotal = 0;
                     _this.rowCount = 0;
+                    _this.filterQuery = { name: "all jobs", query: "" };
+                    _this.customQuery = "";
                     _this.columns = [{ name: "Cluster", title: "Job Cluster ID", field: "_term", modes: ['Active', 'Completed'] }, { name: "I", title: "# Idle Jobs", field: "idle", modes: ['Active'] }, { name: "R", title: "# Running Jobs", field: "running", modes: ['Active'] }, { name: "H", title: "# Held Jobs", field: "held", modes: ['Active'] }, { name: "Submit Time", title: "Time job was sumbitted", field: "submit_date", modes: ['Active', 'Completed'] }, { name: "Memory (MB)", title: "Max used and requested memory", field: "max_mem", modes: ['Active', 'Completed'] }, { name: "Disk (MB)", title: "Max used and requested disk", field: "max_disk", modes: ['Active', 'Completed'] }, { name: "Time (hr)", title: "Max used and requested walltime", field: "max_walltime", modes: ['Active', 'Completed'] }, { name: "Max Eff.", title: "Max CPU efficiency (CPU time / walltime)", field: "max_efficiency", modes: ['Active', 'Completed'] }, { name: "Starts", title: "Max number of times a job has started", field: "max_restarts", modes: ['Active', 'Completed'] }];
 
                     _this.events.on('data-received', _this.onDataReceived.bind(_this));
@@ -177,6 +179,18 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                             this.panel.sortOrder = 'asc';
                         }
                         this.refresh();
+                    }
+                }, {
+                    key: 'addQuery',
+                    value: function addQuery() {
+                        var custom = this.panel.queries.pop();
+                        this.panel.queries.push({ name: 'new query', query: '' });
+                        this.panel.queries.push(custom);
+                    }
+                }, {
+                    key: 'removeQuery',
+                    value: function removeQuery(name) {
+                        _.remove(this.panel.queries, { 'name': name });
                     }
                 }, {
                     key: 'link',
@@ -251,8 +265,12 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                     key: 'get_clusters_query',
                     value: function get_clusters_query() {
                         var q = this.templateSrv.replace(this.panel.query, this.panel.scopedVars);
-                        if (this.panel.userQuery !== '') {
-                            q += ' AND ' + this.panel.userQuery;
+                        if (this.filterQuery && this.filterQuery.name === '-- custom --') {
+                            if (this.customQuery !== '') {
+                                q += ' AND (' + this.customQuery + ')';
+                            }
+                        } else if (this.filterQuery && this.filterQuery.query !== '') {
+                            q += ' AND (' + this.filterQuery.query + ')';
                         }
 
                         var from = this.rangeRaw.from;
