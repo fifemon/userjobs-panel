@@ -30,12 +30,6 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
         sortField: 'submit_date',
         sortOrder: 'asc',
         queries: [
-            {name: "all jobs", query:""},
-            {name: "idle jobs", query: "status:1"},
-            {name: "running jobs", query: "status:2"},
-            {name: "held jobs", query: "status:5"},
-            {name: "jobs exceeding request", query:"memory_ratio:>1 disk_ratio:>1 time_ratio:>1"},
-            {name: "restarted jobs", query:"NumJobStarts:>1"},
             {name: "-- custom --", query:""}
         ]
     };

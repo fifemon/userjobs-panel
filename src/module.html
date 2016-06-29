@@ -14,11 +14,11 @@
 </p>
 <div class="gf-form-query">
     <div class="gf-form">
-        <label class="gf-form-label query-keyword width-7">Filter</label>
+        <label class="gf-form-label query-keyword">Filter</label>
         <div class="gf-form-select-wrapper">
             <select class="gf-form-input" ng-model="ctrl.filterQuery" ng-change="ctrl.refresh()"
                 ng-options="query.name for query in ctrl.panel.queries">
-                <option value="">all jobs</option>
+                <option value="">-- no filter --</option>
             </select>
         </div>
     </div>
