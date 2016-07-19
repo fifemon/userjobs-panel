@@ -317,7 +317,10 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                             "query": {
                                 "filtered": {
                                     "query": {
-                                        "query_string": { "query": q }
+                                        "query_string": {
+                                            "query": q,
+                                            "lowercase_expanded_terms": false
+                                        }
                                     },
                                     "filter": {
                                         "range": { "timestamp": { "gte": from, "lte": to } }
