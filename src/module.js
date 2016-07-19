@@ -43,16 +43,30 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
     this.filterQuery = {name: "all jobs",query:""};
     this.customQuery = "";
     this.columns = [
-        {name: "Cluster", title: "Job Cluster ID", field: "_term", modes:['Active','Completed']},
-        {name: "I", title: "# Idle Jobs", field: "idle", modes:['Active']},
-        {name: "R", title: "# Running Jobs", field: "running", modes:['Active']},
-        {name: "H", title: "# Held Jobs", field: "held", modes:['Active']},
-        {name: "Submit Time", title: "Time job was sumbitted", field: "submit_date", modes:['Active','Completed']},
-        {name: "Memory (MB)", title: "Max used and requested memory", field: "max_mem", modes:['Active','Completed']},
-        {name: "Disk (MB)", title: "Max used and requested disk", field: "max_disk", modes:['Active','Completed']},
-        {name: "Time (hr)", title: "Max used and requested walltime", field: "max_walltime", modes:['Active','Completed']},
-        {name: "Max Eff.", title: "Max CPU efficiency (CPU time / walltime)", field: "max_efficiency", modes:['Active','Completed']},
-        {name: "Starts", title: "Max number of times a job has started", field: "max_restarts", modes:['Active','Completed']}
+        {name: "Cluster", title: "Job Cluster ID", 
+            field: "_term", modes:['Active','Completed']},
+        {name: "I", title: "# Idle Jobs", 
+            field: "idle", modes:['Active']},
+        {name: "R", title: "# Running Jobs", 
+            field: "running", modes:['Active']},
+        {name: "H", title: "# Held Jobs", 
+            field: "held", modes:['Active']},
+        {name: "N", title: "# Jobs", 
+            field: "doc_count", modes:['Completed']},
+        {name: "Submit Time", title: "Time job was sumbitted", 
+            field: "submit_date", modes:['Active','Completed']},
+        {name: "End Time", title: "Time job was completed or cancelled", 
+            field: "last_update", modes:['Completed']},
+        {name: "Memory (MB)", title: "Max used and requested memory", 
+            field: "max_mem", modes:['Active','Completed']},
+        {name: "Disk (MB)", title: "Max used and requested disk", 
+            field: "max_disk", modes:['Active','Completed']},
+        {name: "Time (hr)", title: "Max used and requested walltime", 
+            field: "max_walltime", modes:['Active','Completed']},
+        {name: "Max Eff.", title: "Max CPU efficiency (CPU time / walltime)", 
+            field: "max_efficiency", modes:['Active','Completed']},
+        {name: "Starts", title: "Max number of times a job has started", 
+            field: "max_restarts", modes:['Active','Completed']}
     ];
 
     this.events.on('data-received', this.onDataReceived.bind(this));
@@ -139,7 +153,10 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
       }
 
       function renderActiveRow(data) {
-          var submit_date_str = moment(data.submit_date.value_as_string).format('ddd MMM DD hh:mm');
+          function formatDate(date) {
+              return  moment(date.value_as_string).format('ddd MMM DD hh:mm');
+          }
+
           var schedd = data.cmd.hits.hits[0]._source.schedd;
           var cmd = data.cmd.hits.hits[0]._source.Cmd.split('/').pop();
           var bg_hold = background_style(data.held.doc_count*100,1.0);
@@ -163,16 +180,25 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
               html += '<td rowspan="2">'+data.idle.doc_count+'</td>'+
               '<td rowspan="2">'+data.running.doc_count+'</td>'+
               '<td rowspan="2"' + bg_hold + '>'+data.held.doc_count+'</td>';
+          } else if (panel.mode == 'Completed') {
+              html += '<td rowspan="2">'+data.doc_count+'</td>';
           }
-          html += '<td>'+submit_date_str+'</td>'+
-              '<td' + bg_mem + '>' + max_mem.toFixed(0) + ' / ' + request_mem.toFixed(0) +'</td>'+
+          html += '<td>'+formatDate(data.submit_date)+'</td>';
+          if (panel.mode === 'Completed') {
+              html += '<td>'+formatDate(data.last_update)+'</td>';
+          }
+          html += '<td' + bg_mem + '>' + max_mem.toFixed(0) + ' / ' + request_mem.toFixed(0) +'</td>'+
               '<td' + bg_disk + '>' + max_disk.toFixed(0) + ' / ' + request_disk.toFixed(0) +'</td>'+
               '<td' + bg_time + '>' + max_walltime.toFixed(0) + ' / ' + request_time.toFixed(0) +'</td>'+
               //'<td>'+ max_cputime.toFixed(2) +' hr</td>'+
               '<td>'+ efficiency +'</td>'+
               '<td>'+data.max_restarts.value+'&nbsp;&nbsp;&nbsp;&nbsp;</td>'+
-              '</tr><tr><td colspan="6" class="job-command">'+cmd+'</td>'+
               '</tr>';
+          if (panel.mode === 'Active') {
+              html += '<tr><td colspan="6" class="job-command">'+cmd+'</td></tr>';
+          } else if (panel.mode === 'Completed') {
+              html += '<tr><td colspan="7" class="job-command">'+cmd+'</td></tr>';
+          }
           return html;
       }
 
@@ -252,6 +278,11 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
                       "submit_date": {
                           "min": {
                               "field": "submit_date"
+                          }
+                      },
+                      "last_update": {
+                          "max": {
+                              "field": "@timestamp"
                           }
                       },
                       "max_restarts": {
