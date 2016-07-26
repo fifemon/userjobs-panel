@@ -154,7 +154,11 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
 
       function renderActiveRow(data) {
           function formatDate(date) {
-              return  moment(date.value_as_string).format('ddd MMM DD hh:mm');
+              var d = moment(date.value_as_string);
+              if (ctrl.dashboard.timezone == 'utc') {
+                  d.utc();
+              }
+              return  d.format('ddd MMM DD HH:mm ZZ');
           }
 
           var schedd = data.cmd.hits.hits[0]._source.schedd;

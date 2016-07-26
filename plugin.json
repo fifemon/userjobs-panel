@@ -23,8 +23,8 @@
         {"name": "Active Jobs with custom filter", "path": "src/img/active_jobs_filtered.png"},
         {"name": "Panel options", "path": "src/img/options.png"}
     ],
-    "version": "0.2.0",
-    "updated": "2016-07-19"
+    "version": "0.2.1",
+    "updated": "2016-07-26"
   },
 
   "dependencies": {
