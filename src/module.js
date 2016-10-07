@@ -164,20 +164,14 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
           var schedd = data.cmd.hits.hits[0]._source.schedd;
           var cmd = data.cmd.hits.hits[0]._source.Cmd.split('/').pop();
           var bg_hold = background_style(data.held.doc_count*100,1.0);
-          var request_mem = data.request_mem.value*1;
           var max_mem = data.max_mem.value / 1024;
-          var bg_mem=background_style(max_mem,request_mem);
-          var request_disk = data.request_disk.value / 1024;
           var max_disk = data.max_disk.value / 1024;
-          var bg_disk=background_style(max_disk,request_disk);
           var max_cputime = data.max_cputime.value / 3600;
           var max_walltime = data.max_walltime.value / 3600;
           var efficiency="----";
           if (max_walltime > 0) {
               efficiency = (data.max_efficiency.value*100).toFixed(1)+'%';
           }
-          var request_time = data.request_walltime.value / 3600;
-          var bg_time=background_style(max_walltime,request_time);
           var html = '<tr>'+
               '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/job-cluster-summary?var-cluster='+data.key+'&var-schedd='+schedd+'&from='+data.submit_date.value+'&to='+ctrl.rangeRaw.to+'">'+data.key+'@'+schedd+'</a></td>';
           if (panel.mode === 'Active') {
@@ -191,10 +185,9 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
           if (panel.mode === 'Completed') {
               html += '<td>'+formatDate(data.last_update)+'</td>';
           }
-          html += '<td' + bg_mem + '>' + max_mem.toFixed(0) + ' / ' + request_mem.toFixed(0) +'</td>'+
-              '<td' + bg_disk + '>' + max_disk.toFixed(0) + ' / ' + request_disk.toFixed(0) +'</td>'+
-              '<td' + bg_time + '>' + max_walltime.toFixed(0) + ' / ' + request_time.toFixed(0) +'</td>'+
-              //'<td>'+ max_cputime.toFixed(2) +' hr</td>'+
+          html += '<td>' + max_mem.toFixed(0) +'&nbsp;&nbsp;&nbsp;&nbsp;</td>'+
+              '<td>' + max_disk.toFixed(0) +'&nbsp;&nbsp;&nbsp;&nbsp;</td>'+
+              '<td>' + max_walltime.toFixed(0) +'&nbsp;&nbsp;&nbsp;&nbsp;</td>'+
               '<td>'+ efficiency +'</td>'+
               '<td>'+data.max_restarts.value+'&nbsp;&nbsp;&nbsp;&nbsp;</td>'+
               '</tr>';
@@ -267,19 +260,9 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
                               "field": "ResidentSetSize_RAW"
                           }
                       },
-                      "request_mem": {
-                          "min": {
-                              "field": "RequestMemory"
-                          }
-                      },
                       "max_disk": {
                           "max": {
                               "field": "DiskUsage_RAW"
-                          }
-                      },
-                      "request_disk": {
-                          "min": {
-                              "field": "RequestDisk"
                           }
                       },
                       "submit_date": {
@@ -310,11 +293,6 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
                       "max_walltime": {
                           "max": {
                               "field": "walltime"
-                          }
-                      },
-                      "request_walltime": {
-                          "max": {
-                              "field": "JOB_EXPECTED_MAX_LIFETIME"
                           }
                       },
                       "cmd": {
