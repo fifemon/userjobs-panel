@@ -80,16 +80,17 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
   issueQueries(datasource) {
       this.updateTimeRange();
       this.datasource=datasource;
-      return datasource._post(this.panel.index+'/'+'_search',this.get_clusters_query()).then(function(res) {
+      return datasource._post('_msearch','{"index":"'+this.panel.index+'"}\n'+JSON.stringify(this.get_clusters_query())+'\n\n').then(function(res) {
           return {data: res};
       });
   }
 
   onDataReceived(data) {
       if (data) {
-          this.data = data.aggregations.cluster.buckets;
-          this.docsMissing = data.aggregations.cluster.sum_other_doc_count;
-          this.docsTotal = data.hits.total;
+          var response = data.responses[0]
+          this.data = response.aggregations.cluster.buckets;
+          this.docsMissing = response.aggregations.cluster.sum_other_doc_count;
+          this.docsTotal = response.hits.total;
           this.docs = this.docsTotal - this.docsMissing;
           this.rowCount = this.data.length;
       } else {
