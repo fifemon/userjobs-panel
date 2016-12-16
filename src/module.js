@@ -236,8 +236,8 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
       var data = {
           "size": 0,
           "query": {
-              "filtered": {
-                  "query": {
+              "bool": {
+                  "must": {
                       "query_string": { 
                           "query": q, 
                           "lowercase_expanded_terms": false
@@ -300,7 +300,7 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
                           "top_hits": {
                               "size": 1,
                               "_source": {
-                                  "include": ["Cmd", "schedd"]
+                                  "includes": ["Cmd", "schedd"]
                               }
                           }
                       },
