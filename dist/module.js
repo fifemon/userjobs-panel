@@ -247,6 +247,7 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                             }
 
                             var schedd = data.cmd.hits.hits[0]._source.schedd;
+                            var isDAG = data.cmd.hits.hits[0]._source.env != null && data.cmd.hits.hits[0]._source.env.DAGMANJOBID != null;
                             var cmd = data.cmd.hits.hits[0]._source.Cmd.split('/').pop();
                             var bg_hold = background_style(data.held.doc_count * 100, 1.0);
                             var request_mem = data.request_mem.value * 1;
@@ -263,7 +264,12 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                             }
                             var request_time = data.request_walltime.value / 3600;
                             var bg_time = background_style(max_walltime, request_time);
-                            var html = '<tr>' + '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/job-cluster-summary?var-cluster=' + data.key + '&var-schedd=' + schedd + '&from=' + data.submit_date.value + '&to=' + ctrl.rangeRaw.to + '">' + data.key + '@' + schedd + '</a></td>';
+                            var html = '<tr>';
+                            if (isDAG) {
+                                html += '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/dag-cluster-summary?var-cluster=' + data.key + '&var-schedd=' + schedd + '&from=' + data.submit_date.value + '&to=' + ctrl.rangeRaw.to + '">' + data.key + '@' + schedd + '</a> (DAG)</td>';
+                            } else {
+                                html += '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/job-cluster-summary?var-cluster=' + data.key + '&var-schedd=' + schedd + '&from=' + data.submit_date.value + '&to=' + ctrl.rangeRaw.to + '">' + data.key + '@' + schedd + '</a></td>';
+                            }
                             if (panel.mode === 'Active') {
                                 html += '<td rowspan="2">' + data.idle.doc_count + '</td>' + '<td rowspan="2">' + data.running.doc_count + '</td>' + '<td rowspan="2"' + bg_hold + '>' + data.held.doc_count + '</td>';
                             } else if (panel.mode == 'Completed') {
@@ -340,6 +346,9 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                                 "cluster": {
                                     "terms": {
                                         "field": "cluster",
+                                        "script": {
+                                            "inline": "doc['env.DAGMANJOBID']?.value != null ? Integer.parseInt(doc['env.DAGMANJOBID']?.value) : _value"
+                                        },
                                         "size": this.panel.size,
                                         "order": sort
                                     },
@@ -403,7 +412,7 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                                             "top_hits": {
                                                 "size": 1,
                                                 "_source": {
-                                                    "includes": ["Cmd", "schedd"]
+                                                    "includes": ["Cmd", "schedd", "env.DAGMANJOBID"]
                                                 }
                                             }
                                         },
