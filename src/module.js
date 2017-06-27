@@ -24,7 +24,7 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
     var panelDefaults = {
         index: "",
         query: "*",
-        mode: "Active", // "Active","Completed"
+        mode: "Combined", // "Active","Completed","Combined"
         size: 100,
         scroll: false,
         sortField: 'submit_date',
@@ -44,29 +44,29 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
     this.customQuery = "";
     this.columns = [
         {name: "Cluster", title: "Job Cluster ID", 
-            field: "_term", modes:['Active','Completed']},
+          field: "_term", modes:['Active','Completed','Combined']},
         {name: "I", title: "# Idle Jobs", 
-            field: "idle", modes:['Active']},
+         field: "idle", modes:['Active','Combined']},
         {name: "R", title: "# Running Jobs", 
-            field: "running", modes:['Active']},
+         field: "running", modes:['Active','Combined']},
+        {name: "C", title: "# Completed or Cancelled Jobs", 
+         field: "completed", modes:['Completed','Combined']},
         {name: "H", title: "# Held Jobs", 
-            field: "held", modes:['Active']},
-        {name: "N", title: "# Jobs", 
-            field: "doc_count", modes:['Completed']},
+         field: "held", modes:['Active','Combined']},
         {name: "Submit Time", title: "Time job was sumbitted", 
-            field: "submit_date", modes:['Active','Completed']},
-        {name: "End Time", title: "Time job was completed or cancelled", 
-            field: "last_update", modes:['Completed']},
+         field: "submit_date", modes:['Active','Completed','Combined']},
+        {name: "Last Update Time", title: "Time job was last seen in queue", 
+         field: "last_update", modes:['Completed','Combined']},
         {name: "Memory (MB)", title: "Max used and requested memory", 
-            field: "max_mem", modes:['Active','Completed']},
+         field: "max_mem", modes:['Active','Completed','Combined']},
         {name: "Disk (MB)", title: "Max used and requested disk", 
-            field: "max_disk", modes:['Active','Completed']},
+         field: "max_disk", modes:['Active','Completed','Combined']},
         {name: "Time (hr)", title: "Max used and requested walltime", 
-            field: "max_walltime", modes:['Active','Completed']},
+         field: "max_walltime", modes:['Active','Completed','Combined']},
         {name: "Max Eff.", title: "Max CPU efficiency (CPU time / walltime)", 
-            field: "max_efficiency", modes:['Active','Completed']},
+         field: "max_efficiency", modes:['Active','Completed','Combined']},
         {name: "Starts", title: "Max number of times a job has started", 
-            field: "max_restarts", modes:['Active','Completed']}
+         field: "max_restarts", modes:['Active','Completed','Combined']}
     ];
 
     this.events.on('data-received', this.onDataReceived.bind(this));
@@ -187,9 +187,14 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
               '<td rowspan="2"' + bg_hold + '>'+data.held.doc_count+'</td>';
           } else if (panel.mode == 'Completed') {
               html += '<td rowspan="2">'+data.doc_count+'</td>';
+          } else if (panel.mode == 'Combined') {
+              html += '<td rowspan="2">'+data.idle.doc_count+'</td>'+
+                  '<td rowspan="2">'+data.running.doc_count+'</td>'+
+                  '<td rowspan="2">'+data.completed.doc_count+'</td>'+
+                  '<td rowspan="2"' + bg_hold + '>'+data.held.doc_count+'</td>';
           }
           html += '<td>'+formatDate(data.submit_date)+'</td>';
-          if (panel.mode === 'Completed') {
+          if (panel.mode === 'Completed' || panel.mode === 'Combined') {
               html += '<td>'+formatDate(data.last_update)+'</td>';
           }
           html += '<td' + bg_mem + '>' + max_mem.toFixed(0) + ' / ' + request_mem.toFixed(0) +'</td>'+
@@ -203,6 +208,8 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
               html += '<tr><td colspan="6" class="job-command">'+cmd+'</td></tr>';
           } else if (panel.mode === 'Completed') {
               html += '<tr><td colspan="7" class="job-command">'+cmd+'</td></tr>';
+          } else if (panel.mode === 'Combined') {
+              html += '<tr><td colspan="8" class="job-command">'+cmd+'</td></tr>';
           }
           return html;
       }
@@ -327,19 +334,30 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
                           }
                       },
                       "idle": {
-                          "filter": { "term": { "status": 1 }}
+                          "filter": {
+                              "query_string": {
+                                  "query": "status:1 AND timestamp:[now-10m TO now]"
+                              }
+                          }
                       },
                       "running": {
-                          "filter": { "term": { "status": 2 }}
+                          "filter": {
+                              "query_string": {
+                                  "query": "status:2 AND timestamp:[now-10m TO now]"
+                              }
+                          }
                       },
-                      "cancelled": {
-                          "filter": { "term": { "status": 3 }}
-                      },
-                      "complete": {
-                          "filter": { "term": { "status": 4 }}
+                      "completed": {
+                          "filter": {
+                              "range": { "timestamp": { "lte": "now-10m" }}
+                          }
                       },
                       "held": {
-                          "filter": { "term": { "status": 5 }}
+                          "filter": {
+                              "query_string": {
+                                  "query": "status:5 AND timestamp:[now-10m TO now]"
+                              }
+                          }
                       },
                   }
               }

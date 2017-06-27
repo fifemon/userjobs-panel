@@ -105,7 +105,7 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                 function UserJobsCtrl($scope, $injector, $rootScope, templateSrv) {
                     _classCallCheck(this, UserJobsCtrl);
 
-                    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(UserJobsCtrl).call(this, $scope, $injector));
+                    var _this = _possibleConstructorReturn(this, (UserJobsCtrl.__proto__ || Object.getPrototypeOf(UserJobsCtrl)).call(this, $scope, $injector));
 
                     _this.$rootScope = $rootScope;
                     _this.templateSrv = templateSrv;
@@ -113,7 +113,7 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                     var panelDefaults = {
                         index: "",
                         query: "*",
-                        mode: "Active", // "Active","Completed"
+                        mode: "Combined", // "Active","Completed","Combined"
                         size: 100,
                         scroll: false,
                         sortField: 'submit_date',
@@ -130,18 +130,18 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                     _this.filterQuery = { name: "all jobs", query: "" };
                     _this.customQuery = "";
                     _this.columns = [{ name: "Cluster", title: "Job Cluster ID",
-                        field: "_term", modes: ['Active', 'Completed'] }, { name: "I", title: "# Idle Jobs",
-                        field: "idle", modes: ['Active'] }, { name: "R", title: "# Running Jobs",
-                        field: "running", modes: ['Active'] }, { name: "H", title: "# Held Jobs",
-                        field: "held", modes: ['Active'] }, { name: "N", title: "# Jobs",
-                        field: "doc_count", modes: ['Completed'] }, { name: "Submit Time", title: "Time job was sumbitted",
-                        field: "submit_date", modes: ['Active', 'Completed'] }, { name: "End Time", title: "Time job was completed or cancelled",
-                        field: "last_update", modes: ['Completed'] }, { name: "Memory (MB)", title: "Max used and requested memory",
-                        field: "max_mem", modes: ['Active', 'Completed'] }, { name: "Disk (MB)", title: "Max used and requested disk",
-                        field: "max_disk", modes: ['Active', 'Completed'] }, { name: "Time (hr)", title: "Max used and requested walltime",
-                        field: "max_walltime", modes: ['Active', 'Completed'] }, { name: "Max Eff.", title: "Max CPU efficiency (CPU time / walltime)",
-                        field: "max_efficiency", modes: ['Active', 'Completed'] }, { name: "Starts", title: "Max number of times a job has started",
-                        field: "max_restarts", modes: ['Active', 'Completed'] }];
+                        field: "_term", modes: ['Active', 'Completed', 'Combined'] }, { name: "I", title: "# Idle Jobs",
+                        field: "idle", modes: ['Active', 'Combined'] }, { name: "R", title: "# Running Jobs",
+                        field: "running", modes: ['Active', 'Combined'] }, { name: "C", title: "# Completed or Cancelled Jobs",
+                        field: "completed", modes: ['Completed', 'Combined'] }, { name: "H", title: "# Held Jobs",
+                        field: "held", modes: ['Active', 'Combined'] }, { name: "Submit Time", title: "Time job was sumbitted",
+                        field: "submit_date", modes: ['Active', 'Completed', 'Combined'] }, { name: "Last Update Time", title: "Time job was last seen in queue",
+                        field: "last_update", modes: ['Completed', 'Combined'] }, { name: "Memory (MB)", title: "Max used and requested memory",
+                        field: "max_mem", modes: ['Active', 'Completed', 'Combined'] }, { name: "Disk (MB)", title: "Max used and requested disk",
+                        field: "max_disk", modes: ['Active', 'Completed', 'Combined'] }, { name: "Time (hr)", title: "Max used and requested walltime",
+                        field: "max_walltime", modes: ['Active', 'Completed', 'Combined'] }, { name: "Max Eff.", title: "Max CPU efficiency (CPU time / walltime)",
+                        field: "max_efficiency", modes: ['Active', 'Completed', 'Combined'] }, { name: "Starts", title: "Max number of times a job has started",
+                        field: "max_restarts", modes: ['Active', 'Completed', 'Combined'] }];
 
                     _this.events.on('data-received', _this.onDataReceived.bind(_this));
                     _this.events.on('init-edit-mode', _this.onInitEditMode.bind(_this));
@@ -180,7 +180,7 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                 }, {
                     key: 'render',
                     value: function render() {
-                        return _get(Object.getPrototypeOf(UserJobsCtrl.prototype), 'render', this).call(this, this.data);
+                        return _get(UserJobsCtrl.prototype.__proto__ || Object.getPrototypeOf(UserJobsCtrl.prototype), 'render', this).call(this, this.data);
                     }
                 }, {
                     key: 'toggleSort',
@@ -268,9 +268,11 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                                 html += '<td rowspan="2">' + data.idle.doc_count + '</td>' + '<td rowspan="2">' + data.running.doc_count + '</td>' + '<td rowspan="2"' + bg_hold + '>' + data.held.doc_count + '</td>';
                             } else if (panel.mode == 'Completed') {
                                 html += '<td rowspan="2">' + data.doc_count + '</td>';
+                            } else if (panel.mode == 'Combined') {
+                                html += '<td rowspan="2">' + data.idle.doc_count + '</td>' + '<td rowspan="2">' + data.running.doc_count + '</td>' + '<td rowspan="2">' + data.completed.doc_count + '</td>' + '<td rowspan="2"' + bg_hold + '>' + data.held.doc_count + '</td>';
                             }
                             html += '<td>' + formatDate(data.submit_date) + '</td>';
-                            if (panel.mode === 'Completed') {
+                            if (panel.mode === 'Completed' || panel.mode === 'Combined') {
                                 html += '<td>' + formatDate(data.last_update) + '</td>';
                             }
                             html += '<td' + bg_mem + '>' + max_mem.toFixed(0) + ' / ' + request_mem.toFixed(0) + '</td>' + '<td' + bg_disk + '>' + max_disk.toFixed(0) + ' / ' + request_disk.toFixed(0) + '</td>' + '<td' + bg_time + '>' + max_walltime.toFixed(0) + ' / ' + request_time.toFixed(0) + '</td>' +
@@ -280,6 +282,8 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                                 html += '<tr><td colspan="6" class="job-command">' + cmd + '</td></tr>';
                             } else if (panel.mode === 'Completed') {
                                 html += '<tr><td colspan="7" class="job-command">' + cmd + '</td></tr>';
+                            } else if (panel.mode === 'Combined') {
+                                html += '<tr><td colspan="8" class="job-command">' + cmd + '</td></tr>';
                             }
                             return html;
                         }
@@ -404,19 +408,30 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                                             }
                                         },
                                         "idle": {
-                                            "filter": { "term": { "status": 1 } }
+                                            "filter": {
+                                                "query_string": {
+                                                    "query": "status:1 AND timestamp:[now-10m TO now]"
+                                                }
+                                            }
                                         },
                                         "running": {
-                                            "filter": { "term": { "status": 2 } }
+                                            "filter": {
+                                                "query_string": {
+                                                    "query": "status:2 AND timestamp:[now-10m TO now]"
+                                                }
+                                            }
                                         },
-                                        "cancelled": {
-                                            "filter": { "term": { "status": 3 } }
-                                        },
-                                        "complete": {
-                                            "filter": { "term": { "status": 4 } }
+                                        "completed": {
+                                            "filter": {
+                                                "range": { "timestamp": { "lte": "now-10m" } }
+                                            }
                                         },
                                         "held": {
-                                            "filter": { "term": { "status": 5 } }
+                                            "filter": {
+                                                "query_string": {
+                                                    "query": "status:5 AND timestamp:[now-10m TO now]"
+                                                }
+                                            }
                                         }
                                     }
                                 }
