@@ -182,9 +182,9 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
           var bg_time=background_style(max_walltime,request_time);
           var html = '<tr>';
           if (isDAG) {
-              html += '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/dag-cluster-summary?var-cluster='+data.key+'&var-schedd='+schedd+'&from='+data.submit_date.value+'&to='+ctrl.rangeRaw.to+'">'+data.key+'@'+schedd+'</a> (DAG)</td>';
+              html += '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/dag-cluster-summary?var-cluster='+data.key+'&var-schedd='+schedd+'&from='+data.submit_date.value+'&to='+ctrl.range.raw.to+'">'+data.key+'@'+schedd+'</a> (DAG)</td>';
           } else {
-              html += '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/job-cluster-summary?var-cluster='+data.key+'&var-schedd='+schedd+'&from='+data.submit_date.value+'&to='+ctrl.rangeRaw.to+'">'+data.key+'@'+schedd+'</a></td>';
+              html += '<td rowspan="2"><a style="text-decoration:underline;" href="dashboard/db/job-cluster-summary?var-cluster='+data.key+'&var-schedd='+schedd+'&from='+data.submit_date.value+'&to='+ctrl.range.raw.to+'">'+data.key+'@'+schedd+'</a></td>';
           }
           if (panel.mode === 'Active') {
               html += '<td rowspan="2">'+data.idle.doc_count+'</td>'+
@@ -239,8 +239,8 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
           q += ' AND (' + this.filterQuery.query + ')';
       }
 
-      var from = this.rangeRaw.from;
-      var to = this.rangeRaw.to;
+      var from = this.range.raw.from;
+      var to = this.range.raw.to;
       // time range hack; really should have separate indices for active and completed jobs
       if (this.panel.mode === 'Active') {
           from = 'now-10m';
