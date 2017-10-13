@@ -14,6 +14,15 @@ Columns and aggregations are currently hardcoded and specific for Fifemon.
 
 # Changelog
 
+## 0.3.1
+
+* Update for Grafana 4.5 (change rangeRaw to range.raw)
+* Add configurable background colors
+
+## 0.3.0
+
+* Group DAGman jobs
+
 ## 0.2.1
 
 * Fix time display to 24-hour and add timezone offset
