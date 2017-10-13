@@ -17,7 +17,7 @@ Columns and aggregations are currently hardcoded and specific for Fifemon.
 ## 0.3.1
 
 * Update for Grafana 4.5 (change rangeRaw to range.raw)
-* Add configurable background colors
+* Add "Show requests" option to show and highlight resource requests
 
 ## 0.3.0
 

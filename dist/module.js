@@ -168,8 +168,8 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                     value: function onDataReceived(data) {
                         if (data) {
                             var response = data.responses[0];
-                            this.data = response.aggregations.cluster.buckets;
-                            this.docsMissing = response.aggregations.cluster.sum_other_doc_count;
+                            this.data = response.aggregations.jobs.cluster.buckets.concat(response.aggregations.dags.cluster.buckets);
+                            this.docsMissing = response.aggregations.jobs.cluster.sum_other_doc_count + response.aggregations.dags.cluster.sum_other_doc_count;
                             this.docsTotal = response.hits.total;
                             this.docs = this.docsTotal - this.docsMissing;
                             this.rowCount = this.data.length;
@@ -349,102 +349,216 @@ System.register(['app/plugins/sdk', 'lodash', 'moment'], function (_export, _con
                                 }
                             },
                             "aggs": {
-                                "cluster": {
-                                    "terms": {
-                                        "field": "cluster",
-                                        "script": {
-                                            "inline": "doc.containsKey('env.DAGMANJOBID') ? Integer.parseInt(doc['env.DAGMANJOBID'].value): _value"
-                                        },
-                                        "size": this.panel.size,
-                                        "order": sort
+                                "jobs": {
+                                    "filter": {
+                                        "query_string": {
+                                            "query": "NOT _exists_:env.DAGMANJOBID"
+                                        }
                                     },
                                     "aggs": {
-                                        "max_mem": {
-                                            "max": {
-                                                "field": "ResidentSetSize_RAW"
-                                            }
-                                        },
-                                        "request_mem": {
-                                            "min": {
-                                                "field": "RequestMemory"
-                                            }
-                                        },
-                                        "max_disk": {
-                                            "max": {
-                                                "field": "DiskUsage_RAW"
-                                            }
-                                        },
-                                        "request_disk": {
-                                            "min": {
-                                                "field": "RequestDisk"
-                                            }
-                                        },
-                                        "submit_date": {
-                                            "min": {
-                                                "field": "submit_date"
-                                            }
-                                        },
-                                        "last_update": {
-                                            "max": {
-                                                "field": "@timestamp"
-                                            }
-                                        },
-                                        "max_restarts": {
-                                            "max": {
-                                                "field": "NumJobStarts"
-                                            }
-                                        },
-                                        "max_efficiency": {
-                                            "max": {
-                                                "field": "efficiency"
-                                            }
-                                        },
-                                        "max_cputime": {
-                                            "max": {
-                                                "field": "RemoteUserCpu"
-                                            }
-                                        },
-                                        "max_walltime": {
-                                            "max": {
-                                                "field": "walltime"
-                                            }
-                                        },
-                                        "request_walltime": {
-                                            "max": {
-                                                "field": "JOB_EXPECTED_MAX_LIFETIME"
-                                            }
-                                        },
-                                        "cmd": {
-                                            "top_hits": {
-                                                "size": 1,
-                                                "_source": {
-                                                    "includes": ["Cmd", "schedd", "env.DAGMANJOBID"]
+                                        "cluster": {
+                                            "terms": {
+                                                "field": "cluster",
+                                                "size": this.panel.size,
+                                                "order": sort
+                                            },
+                                            "aggs": {
+                                                "max_mem": {
+                                                    "max": {
+                                                        "field": "ResidentSetSize_RAW"
+                                                    }
+                                                },
+                                                "request_mem": {
+                                                    "min": {
+                                                        "field": "RequestMemory"
+                                                    }
+                                                },
+                                                "max_disk": {
+                                                    "max": {
+                                                        "field": "DiskUsage_RAW"
+                                                    }
+                                                },
+                                                "request_disk": {
+                                                    "min": {
+                                                        "field": "RequestDisk"
+                                                    }
+                                                },
+                                                "submit_date": {
+                                                    "min": {
+                                                        "field": "submit_date"
+                                                    }
+                                                },
+                                                "last_update": {
+                                                    "max": {
+                                                        "field": "@timestamp"
+                                                    }
+                                                },
+                                                "max_restarts": {
+                                                    "max": {
+                                                        "field": "NumJobStarts"
+                                                    }
+                                                },
+                                                "max_efficiency": {
+                                                    "max": {
+                                                        "field": "efficiency"
+                                                    }
+                                                },
+                                                "max_cputime": {
+                                                    "max": {
+                                                        "field": "RemoteUserCpu"
+                                                    }
+                                                },
+                                                "max_walltime": {
+                                                    "max": {
+                                                        "field": "walltime"
+                                                    }
+                                                },
+                                                "request_walltime": {
+                                                    "max": {
+                                                        "field": "JOB_EXPECTED_MAX_LIFETIME"
+                                                    }
+                                                },
+                                                "cmd": {
+                                                    "top_hits": {
+                                                        "size": 1,
+                                                        "_source": {
+                                                            "includes": ["Cmd", "schedd", "env.DAGMANJOBID"]
+                                                        }
+                                                    }
+                                                },
+                                                "idle": {
+                                                    "filter": {
+                                                        "query_string": {
+                                                            "query": "status:1 AND timestamp:[now-10m TO now]"
+                                                        }
+                                                    }
+                                                },
+                                                "running": {
+                                                    "filter": {
+                                                        "query_string": {
+                                                            "query": "status:2 AND timestamp:[now-10m TO now]"
+                                                        }
+                                                    }
+                                                },
+                                                "completed": {
+                                                    "filter": {
+                                                        "range": { "timestamp": { "lte": "now-10m" } }
+                                                    }
+                                                },
+                                                "held": {
+                                                    "filter": {
+                                                        "query_string": {
+                                                            "query": "status:5 AND timestamp:[now-10m TO now]"
+                                                        }
+                                                    }
                                                 }
                                             }
-                                        },
-                                        "idle": {
-                                            "filter": {
-                                                "query_string": {
-                                                    "query": "status:1 AND timestamp:[now-10m TO now]"
-                                                }
-                                            }
-                                        },
-                                        "running": {
-                                            "filter": {
-                                                "query_string": {
-                                                    "query": "status:2 AND timestamp:[now-10m TO now]"
-                                                }
-                                            }
-                                        },
-                                        "completed": {
-                                            "filter": {
-                                                "range": { "timestamp": { "lte": "now-10m" } }
-                                            }
-                                        },
-                                        "held": {
-                                            "filter": {
-                                                "query_string": {
-                                                    "query": "status:5 AND timestamp:[now-10m TO now]"
+                                        }
+
+                                    }
+                                },
+                                "dags": {
+                                    "filter": {
+                                        "query_string": {
+                                            "query": "_exists_:env.DAGMANJOBID"
+                                        }
+                                    },
+                                    "aggs": {
+                                        "cluster": {
+                                            "terms": {
+                                                "field": "env.DAGMANJOBID",
+                                                "size": this.panel.size,
+                                                "order": sort
+                                            },
+                                            "aggs": {
+                                                "max_mem": {
+                                                    "max": {
+                                                        "field": "ResidentSetSize_RAW"
+                                                    }
+                                                },
+                                                "request_mem": {
+                                                    "min": {
+                                                        "field": "RequestMemory"
+                                                    }
+                                                },
+                                                "max_disk": {
+                                                    "max": {
+                                                        "field": "DiskUsage_RAW"
+                                                    }
+                                                },
+                                                "request_disk": {
+                                                    "min": {
+                                                        "field": "RequestDisk"
+                                                    }
+                                                },
+                                                "submit_date": {
+                                                    "min": {
+                                                        "field": "submit_date"
+                                                    }
+                                                },
+                                                "last_update": {
+                                                    "max": {
+                                                        "field": "@timestamp"
+                                                    }
+                                                },
+                                                "max_restarts": {
+                                                    "max": {
+                                                        "field": "NumJobStarts"
+                                                    }
+                                                },
+                                                "max_efficiency": {
+                                                    "max": {
+                                                        "field": "efficiency"
+                                                    }
+                                                },
+                                                "max_cputime": {
+                                                    "max": {
+                                                        "field": "RemoteUserCpu"
+                                                    }
+                                                },
+                                                "max_walltime": {
+                                                    "max": {
+                                                        "field": "walltime"
+                                                    }
+                                                },
+                                                "request_walltime": {
+                                                    "max": {
+                                                        "field": "JOB_EXPECTED_MAX_LIFETIME"
+                                                    }
+                                                },
+                                                "cmd": {
+                                                    "top_hits": {
+                                                        "size": 1,
+                                                        "_source": {
+                                                            "includes": ["Cmd", "schedd", "env.DAGMANJOBID"]
+                                                        }
+                                                    }
+                                                },
+                                                "idle": {
+                                                    "filter": {
+                                                        "query_string": {
+                                                            "query": "status:1 AND timestamp:[now-10m TO now]"
+                                                        }
+                                                    }
+                                                },
+                                                "running": {
+                                                    "filter": {
+                                                        "query_string": {
+                                                            "query": "status:2 AND timestamp:[now-10m TO now]"
+                                                        }
+                                                    }
+                                                },
+                                                "completed": {
+                                                    "filter": {
+                                                        "range": { "timestamp": { "lte": "now-10m" } }
+                                                    }
+                                                },
+                                                "held": {
+                                                    "filter": {
+                                                        "query_string": {
+                                                            "query": "status:5 AND timestamp:[now-10m TO now]"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
