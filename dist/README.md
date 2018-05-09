@@ -14,6 +14,10 @@ Columns and aggregations are currently hardcoded and specific for Fifemon.
 
 # Changelog
 
+## 0.3.2
+
+* Update for Grafana 5 (user datasource.post() instead of _post())
+
 ## 0.3.1
 
 * Update for Grafana 4.5 (change rangeRaw to range.raw)

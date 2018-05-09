@@ -23,12 +23,12 @@
         {"name": "Active Jobs with custom filter", "path": "src/img/active_jobs_filtered.png"},
         {"name": "Panel options", "path": "src/img/options.png"}
     ],
-    "version": "0.3.1",
-    "updated": "2017-09-21"
+    "version": "0.3.2",
+    "updated": "2018-05-09"
   },
 
   "dependencies": {
-    "grafanaVersion": "4.5.0",
+    "grafanaVersion": "5.0.0",
     "plugins": [ ]
   }
 }

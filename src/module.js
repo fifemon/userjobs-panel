@@ -81,7 +81,7 @@ export class UserJobsCtrl extends MetricsPanelCtrl {
   issueQueries(datasource) {
       this.updateTimeRange();
       this.datasource=datasource;
-      return datasource._post('_msearch','{"index":"'+this.panel.index+'"}\n'+JSON.stringify(this.get_clusters_query())+'\n\n').then(function(res) {
+      return datasource.post('_msearch','{"index":"'+this.panel.index+'"}\n'+JSON.stringify(this.get_clusters_query())+'\n\n').then(function(res) {
           return {data: res};
       });
   }
